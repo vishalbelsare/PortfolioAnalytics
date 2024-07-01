@@ -181,7 +181,7 @@ constraint <- constraint_v2 <- function(type, enabled=TRUE, ..., constrclass="v2
 #' This is the main function for adding and/or updating constraints to the \code{\link{portfolio.spec}} object.
 #' 
 #' The following constraint types may be specified:
-#' \itemize{
+#' \describe{
 #' \item{\code{weight_sum}, \code{weight}, \code{leverage}}{ Specify constraint on the sum of the weights, see \code{\link{weight_sum_constraint}} }
 #' \item{\code{full_investment}}{ Special case to set \code{min_sum=1} and \code{max_sum=1} of weight sum constraints }
 #' \item{\code{dollar_neutral}, \code{active}}{ Special case to set \code{min_sum=0} and \code{max_sum=0} of weight sum constraints }
@@ -1085,7 +1085,7 @@ leverage_exposure_constraint <- function(type="leverage_exposure", leverage=NULL
 #' @param ... any other passthru parameters, used to call \code{\link{constraint}}
 #' @author bpeterson
 #' @method update constraint
-#' @S3method update constraint
+
 #' @export
 update.constraint <- function(object, ...){
   constraints <- object

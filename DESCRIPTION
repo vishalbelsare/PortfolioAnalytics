@@ -16,7 +16,7 @@ Authors@R: c(
     person(given="Xinran",family="Zhao",role="ctb") ,
     person(given="Yifu",family="Kang",role="ctb") )
 Version: 2.0.0
-Date: 2024-04-13
+Date: 2024-06-24
 Maintainer: Brian G. Peterson <brian@braverock.com>
 Description: Portfolio optimization and analysis routines and graphics.
 Depends:
@@ -49,8 +49,6 @@ Suggests:
     RobStatTM,
     PCRA,
     R.rsp
-Remotes:
-    git::https://github.com/robustport/PCRA.git
 VignetteBuilder: R.rsp
 Imports:
     methods,
@@ -61,5 +59,5 @@ Imports:
 License: GPL-3
 URL: https://github.com/braverock/PortfolioAnalytics
 Copyright: (c) 2004-2024
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Encoding: UTF-8

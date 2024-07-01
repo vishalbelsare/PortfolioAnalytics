@@ -507,16 +507,16 @@ optimize.portfolio_v1 <- function(
 #' 
 #' The extension to ROI solves a limited type of convex optimization problems:
 #' \itemize{
-#' \item{Maxmimize portfolio return subject leverage, box, group, position limit, target mean return, and/or factor exposure constraints on weights.}
-#' \item{Minimize portfolio variance subject to leverage, box, group, turnover, and/or factor exposure constraints (otherwise known as global minimum variance portfolio).}
-#' \item{Minimize portfolio variance subject to leverage, box, group, and/or factor exposure constraints and a desired portfolio return.}
-#' \item{Maximize quadratic utility subject to leverage, box, group, target mean return, turnover, and/or factor exposure constraints and risk aversion parameter.
-#' (The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object).}
-#' \item{Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) can be done by specifying \code{maxSR=TRUE} in \code{optimize.portfolio}. 
-#' If both mean and StdDev are specified as objective names, the default action is to maximize quadratic utility, therefore \code{maxSR=TRUE} must be specified to maximize Sharpe Ratio.}
-#' \item{Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, position limit, target mean return, and/or factor exposure constraints and target portfolio return.}
-#' \item{Maximize portfolio mean return per unit ES/ETL/CVaR (i.e. the STARR Ratio) can be done by specifying \code{maxSTARR=TRUE} in \code{optimize.portfolio}. 
-#' If both mean and ES/ETL/CVaR are specified as objective names, the default action is to maximize mean return per unit ES/ETL/CVaR.}
+#' \item Maxmimize portfolio return subject leverage, box, group, position limit, target mean return, and/or factor exposure constraints on weights.
+#' \item Minimize portfolio variance subject to leverage, box, group, turnover, and/or factor exposure constraints (otherwise known as global minimum variance portfolio).
+#' \item Minimize portfolio variance subject to leverage, box, group, and/or factor exposure constraints and a desired portfolio return.
+#' \item Maximize quadratic utility subject to leverage, box, group, target mean return, turnover, and/or factor exposure constraints and risk aversion parameter.
+#' (The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object).
+#' \item Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) can be done by specifying \code{maxSR=TRUE} in \code{optimize.portfolio}. 
+#' If both mean and StdDev are specified as objective names, the default action is to maximize quadratic utility, therefore \code{maxSR=TRUE} must be specified to maximize Sharpe Ratio.
+#' \item Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, position limit, target mean return, and/or factor exposure constraints and target portfolio return.
+#' \item Maximize portfolio mean return per unit ES/ETL/CVaR (i.e. the STARR Ratio) can be done by specifying \code{maxSTARR=TRUE} in \code{optimize.portfolio}. 
+#' If both mean and ES/ETL/CVaR are specified as objective names, the default action is to maximize mean return per unit ES/ETL/CVaR.
 #' }
 #' These problems also support a weight_concentration objective where concentration
 #' of weights as measured by HHI is added as a penalty term to the quadratic objective.
@@ -533,26 +533,26 @@ optimize.portfolio_v1 <- function(
 #' 
 #' The extension to CVXR solves a limited type of convex optimization problems:
 #' \itemize{
-#' \item{Maxmimize portfolio mean return subject leverage, box, group, and/or target mean return constraints}
-#' \item{Minimize portfolio variance subject to leverage, box, group, and/or target mean return constraints (otherwise known as global minimum variance portfolio).}
-#' \item{Maximize quadratic utility subject to leverage, box, group, and/or target mean return constraints and risk aversion parameter.
-#' (The default risk aversion is 1, and specified risk aversion could be given by \code{risk_aversion = 1}. 
-#' The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)}
-#' \item{Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
+#' \item Maxmimize portfolio mean return subject leverage, box, group, and/or target mean return constraints
+#' \item Minimize portfolio variance subject to leverage, box, group, and/or target mean return constraints (otherwise known as global minimum variance portfolio).
+#' \item Maximize quadratic utility subject to leverage, box, group, and/or target mean return constraints and risk aversion parameter.
+#' (The default risk aversion is 1, and specified risk aversion could be given by \code{risk_aversion = 1}.
+#' The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+#' \item Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
 #' (The default tail probability is 0.05, and specified tail probability could be given by \code{arguments = list(p=0.95)}.
-#' The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)}
-#' \item{Minimize portfolio EQS optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
+#' The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+#' \item Minimize portfolio EQS optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
 #' (The default tail probability is 0.05, and specified tail probability could be given by \code{arguments = list(p=0.95)}.
-#' The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)}
-#' \item{Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) subject to leverage, box, group, and/or target mean return constraints.
+#' The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+#' \item Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) subject to leverage, box, group, and/or target mean return constraints.
 #' It should be specified by \code{maxSR=TRUE} in \code{optimize.portfolio} with both mean and var/StdDev objectives.
-#' Otherwise, the default action is to maximize quadratic utility.}
-#' \item{Maximize portfolio mean return per unit ES (i.e. the ES ratio/STARR) subject to leverage, box, group, and/or target mean return constraints.
+#' Otherwise, the default action is to maximize quadratic utility.
+#' \item Maximize portfolio mean return per unit ES (i.e. the ES ratio/STARR) subject to leverage, box, group, and/or target mean return constraints.
 #' It could be specified by \code{maxSTARR=TRUE} or \code{ESratio=TRUE} in \code{optimize.portfolio} with both mean and ES objectives.
-#' The default action is to maximize ES ratio. If \code{maxSTARR=FALSE} or \code{ESratio=FALSE} is given, the action will be minimizing ES.}
-#' \item{Maximize portfolio mean return per unit EQS (i.e. the EQS ratio) subject to leverage, box, group, and/or target mean return constraints.
+#' The default action is to maximize ES ratio. If \code{maxSTARR=FALSE} or \code{ESratio=FALSE} is given, the action will be minimizing ES.
+#' \item Maximize portfolio mean return per unit EQS (i.e. the EQS ratio) subject to leverage, box, group, and/or target mean return constraints.
 #' It could be specified by \code{EQSratio=TRUE} in \code{optimize.portfolio} with both mean and EQS objectives.
-#' The default action is to maximize EQS ratio. If \code{EQSratio=FALSE} is given, the action will be minimizing EQS.}
+#' The default action is to maximize EQS ratio. If \code{EQSratio=FALSE} is given, the action will be minimizing EQS.
 #' }
 #' 
 #' Because these convex optimization problem are standardized, there is no need for a penalty term. 
@@ -581,7 +581,7 @@ optimize.portfolio_v1 <- function(
 #' @param message TRUE/FALSE. The default is message=FALSE. Display messages if TRUE.
 #' 
 #' @return a list containing the following elements
-#' \itemize{
+#' \describe{
 #'   \item{\code{weights}:}{ The optimal set weights.}
 #'   \item{\code{objective_measures}:}{ A list containing the value of each objective corresponding to the optimal weights.}
 #'   \item{\code{opt_values}:}{ A list containing the value of each objective corresponding to the optimal weights.}
@@ -599,10 +599,10 @@ optimize.portfolio_v1 <- function(
 #' desired solver for more information.
 #' 
 #' \code{optimize_method="random"}
-#' \itemize{
+#' \describe{
 #'   \item{\code{random_portfolios}:}{ A matrix of the random portfolios.}
 #'   \item{\code{random_portfolio_objective_results}:}{ A list of the following elements for each random portfolio.}
-#'   \itemize{
+#'   \describe{
 #'     \item{\code{out}:}{ The output value of the solver corresponding to the random portfolio weights.}
 #'     \item{\code{weights}:}{ The weights of the random portfolio.}
 #'     \item{\code{objective_measures}:}{ A list of each objective measure corresponding to the random portfolio weights.}
@@ -610,42 +610,42 @@ optimize.portfolio_v1 <- function(
 #' }
 #' 
 #' \code{optimize_method="DEoptim"}
-#' \itemize{
+#' \describe{
 #'   \item{\code{DEoutput:}}{ A list (of length 2) containing the following elements:}
 #'   \itemize{
-#'     \item{\code{optim}}
-#'     \item{\code{member}}
+#'     \item \code{optim}
+#'     \item \code{member}
 #'   }
 #'   \item{\code{DEoptim_objective_results}:}{ A list containing the following elements for each intermediate population.}
 #'   \itemize{
-#'     \item{\code{out}:}{ The output of the solver.}
-#'     \item{\code{weights}:}{ Population weights.}
-#'     \item{\code{init_weights}:}{ Initial population weights.}
-#'     \item{\code{objective_measures}:}{ A list of each objective measure corresponding to the weights}
+#'     \item \code{out}: The output of the solver.
+#'     \item \code{weights}: Population weights.
+#'     \item \code{init_weights}: Initial population weights.
+#'     \item \code{objective_measures}: A list of each objective measure corresponding to the weights
 #'   }
 #' }
 #' 
 #' \code{optimize_method="pso"}
 #' \itemize{
-#'   \item{\code{PSOoutput}:}{ A list containing the following elements:}
+#'   \item \code{PSOoutput}: A list containing the following elements:
 #'   \itemize{
-#'     \item{par}
-#'     \item{value}
-#'     \item{counts}
-#'     \item{convergence}
-#'     \item{message}
-#'     \item{stats}
+#'     \item par
+#'     \item value 
+#'     \item counts 
+#'     \item convergence
+#'     \item message
+#'     \item stats
 #'   }
 #' }
 #' 
 #' \code{optimize_method="GenSA"}
 #' \itemize{
-#'   \item{\code{GenSAoutput:}}{ A list containing the following elements:}
+#'   \item \code{GenSAoutput}: A list containing the following elements:
 #'   \itemize{
-#'     \item{value}
-#'     \item{par}
-#'     \item{trace.mat}
-#'     \item{counts}
+#'     \item value
+#'     \item par
+#'     \item trace.mat
+#'     \item counts
 #'   }
 #' }
 #' 
@@ -2797,6 +2797,7 @@ optimize.portfolio <- optimize.portfolio_v2 <- function(
     wts <- CVXR::Variable(N)
     z <- CVXR::Variable(T)
     zeta <- CVXR::Variable(1)
+    t <- CVXR::Variable(1)
     
     # objective type
     target = -Inf
@@ -2898,16 +2899,18 @@ optimize.portfolio <- optimize.portfolio_v2 <- function(
       }
       if(EQSratio){
         # max EQS ratio
-        obj <- zeta + (1/alpha) * CVXR::p_norm(z, p=2)
+        obj <- zeta + (1/(alpha* sqrt(T))) * t
         constraints_cvxr = list(z >= 0, 
                                 z >= -X %*% wts - zeta, 
                                 t(mean_value) %*% wts == 1,
-                                sum(wts) >= 0)
+                                sum(wts) >= 0,
+                                t >= CVXR::p_norm(z, p=2))
         tmpname = "EQS ratio"
       } else {
         # min EQS
-        obj <- zeta + (1/alpha) * CVXR::p_norm(z, p=2)
-        constraints_cvxr = list(z >= 0, z >= -X %*% wts - zeta)
+        obj <- zeta + (1/(alpha* sqrt(T))) * t
+        constraints_cvxr = list(z >= 0, z >= -X %*% wts - zeta,
+                                t >= CVXR::p_norm(z, p=2))
         tmpname = "EQS"
       }
     } else { 
@@ -2972,7 +2975,7 @@ optimize.portfolio <- optimize.portfolio_v2 <- function(
     
     if(cvxr_default){
       if(risk_ES || risk_EQS || maxSTARR || EQSratio){
-        result_cvxr <- CVXR::solve(prob_cvxr, solver = "ECOS", ... = ...)
+        result_cvxr <- CVXR::solve(prob_cvxr, solver = "SCS", ... = ...)
       } else {
         result_cvxr <- CVXR::solve(prob_cvxr, solver = "OSQP", ... = ...)
       }
@@ -3113,20 +3116,20 @@ optimize.portfolio.rebalancing_v1 <- function(R,constraints,optimize_method=c("D
 #' The user should be aware of the following behavior when both 
 #' \code{training_period} and \code{rolling_window} are specified and have 
 #' different values
-#' \itemize{
+#' \describe{
 #'   \item{\code{training_period < rolling_window}: }{For example, if you have 
 #'   \code{rolling_window=60}, \code{training_period=50}, and the periodicity 
 #'   of the data is the same as the rebalance frequency (i.e. monthly data with 
 #'   \code{rebalance_on="months")} then the returns data used in the optimization 
 #'   at each iteration are as follows:
 #'   \itemize{
-#'   \item{1: R[1:50,]}
-#'   \item{2: R[1:51,]}
-#'   \item{...}
-#'   \item{11: R[1:60,]}
-#'   \item{12: R[1:61,]}
-#'   \item{13: R[2:62,]}
-#'   \item{...}
+#'   \item 1: R[1:50,]
+#'   \item 2: R[1:51,]
+#'   \item ...
+#'   \item 11: R[1:60,]
+#'   \item 12: R[1:61,]
+#'   \item 13: R[2:62,]
+#'   \item ...
 #'   }
 #'   This results in a growing window for several optimizations initially while
 #'   the endpoint iterator (i.e. \code{[50, 51, ...]}) is less than the 
@@ -3163,7 +3166,7 @@ optimize.portfolio.rebalancing_v1 <- function(R,constraints,optimize_method=c("D
 #' of the rolling window, the default of NULL will run the optimization 
 #' using the data from inception.
 #' @return a list containing the following elements
-#' \itemize{
+#' \describe{
 #'   \item{\code{portfolio}:}{ The portfolio object.}
 #'   \item{\code{R}:}{ The asset returns.}
 #'   \item{\code{call}:}{ The function call.}
@@ -3294,6 +3297,7 @@ optimize.portfolio.rebalancing <- function(R, portfolio=NULL, constraints=NULL, 
   
   #store the call for later
   call <- match.call()
+  if(length(optimize_method) == 2) optimize_method <- optimize_method[2] else optimize_method <- optimize_method[1]
   if(optimize_method=="random"){
     # get any rp related arguments passed in through dots
     if(hasArg(rp_method)) rp_method=match.call(expand.dots=TRUE)$rp_method else rp_method="sample"

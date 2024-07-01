@@ -195,8 +195,6 @@ add.objective_v1 <- function(constraints, type, name, arguments=NULL, enabled=TR
 #' # Index of the weights.
 #' portf.conc <- add.objective(portf, type="weight_concentration", 
 #'                             name="HHI", conc_aversion=0.01)
-#' @rdname add.objective
-#' @name add.objective
 #' @export add.objective 
 #' @export add.objective_v2
 add.objective <- add.objective_v2 <- function(portfolio, constraints=NULL, type, name, arguments=NULL, enabled=TRUE, ..., indexnum=NULL){
@@ -457,8 +455,8 @@ minmax_objective <- function(name, target=NULL, arguments=NULL, multiplier=1, en
 #' @param enabled TRUE/FALSE, default enabled=TRUE
 #' @return a list of two elements
 #' \itemize{
-#'   \item{\code{return_objective}}
-#'   \item{\code{portfolio_risk_objective}}
+#'   \item \code{return_objective}
+#'   \item \code{portfolio_risk_objective}
 #' }
 #' @author Ross Bennett
 #' @export
