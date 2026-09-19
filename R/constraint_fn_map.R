@@ -24,8 +24,8 @@
 #' @param verbose print error messages for debuggin purposes
 #' @param \dots any other passthru parameters
 #' @return 
-#' \itemize{
-#' \item{weights: }{vector of transformed weights meeting constraints.}
+#' \describe{
+#' \item{weights:}{vector of transformed weights meeting constraints.}
 #' \item{min: }{vector of min box constraints that may have been modified if relax=TRUE.}
 #' \item{max: }{vector of max box constraints that may have been modified if relax=TRUE.}
 #' \item{cLO: }{vector of lower bound group constraints that may have been modified if relax=TRUE.}
@@ -51,7 +51,12 @@ fn_map <- function(weights, portfolio, relax=FALSE, verbose=FALSE, ...){
   
   weight_seq <- portfolio$weight_seq
   if(is.null(weight_seq)){
-    weight_seq <- generatesequence(min=min(constraints$min), max=max(constraints$max), by=0.002)
+    # Guard against -Inf/Inf bounds when no box constraint was specified.
+    wt_min <- min(constraints$min)
+    wt_max <- max(constraints$max)
+    if (!is.finite(wt_min)) wt_min <- 0
+    if (!is.finite(wt_max)) wt_max <- 1
+    weight_seq <- generatesequence(min=wt_min, max=wt_max, by=0.002)
   }
   weight_seq <- as.vector(weight_seq)
   
@@ -370,6 +375,23 @@ fn_map <- function(weights, portfolio, relax=FALSE, verbose=FALSE, ...){
     } # end check for leverage exposure violation
   } # end check for NULL arguments
 
+  # check factor exposure constraints — project via QP if violated
+  fe_B <- constraints$B
+  fe_lower <- constraints$lower
+  fe_upper <- constraints$upper
+  if(!is.null(fe_B) && factor_exposure_fail(tmp_weights, fe_B, fe_lower, fe_upper)){
+    tmp_weights <- .project_to_fe_feasible(
+      w_cand   = tmp_weights,
+      min_sum  = min_sum,
+      max_sum  = max_sum,
+      min_box  = tmp_min,
+      max_box  = tmp_max,
+      B        = fe_B,
+      lower    = fe_lower,
+      upper    = fe_upper
+    )
+  } # end check for factor exposure violation
+
   names(tmp_weights) <- names(weights)
   return(list(weights=tmp_weights, 
               min=tmp_min, 
@@ -436,14 +458,20 @@ rp_transform <- function(w,
   #if(is.null(max_sum)) max_sum <- 1.01
   #if(is.null(min_box)) min_box <- rep(-Inf, length(tmp_w))
   #if(is.null(max_box)) max_box <- rep(Inf, length(tmp_w))
-  if(is.null(max_pos)) max_pos <- length(tmp_w)
+  if(is.null(max_pos) || max_pos > length(tmp_w)) max_pos <- length(tmp_w)
   #if(is.null(max_poslong)) max_pos_long <- length(tmp_w)
   #if(is.null(max_pos_short)) max_pos_short <- length(tmp_w)
   #if(is.null(leverage)) leverage <- Inf
   
   # Generate a weight sequence, we should check for portfolio$weight_seq
-  if(is.null(weight_seq))
-    weight_seq <- generatesequence(min=min(min_box), max=max(max_box), by=0.002)
+  if(is.null(weight_seq)){
+    # Guard against -Inf/Inf bounds when no box constraint was specified.
+    wt_min <- min(min_box)
+    wt_max <- max(max_box)
+    if (!is.finite(wt_min)) wt_min <- 0
+    if (!is.finite(wt_max)) wt_max <- 1
+    weight_seq <- generatesequence(min=wt_min, max=wt_max, by=0.002)
+  }
   
   # make sure there is a 0 in weight_seq if we have a position limit constraint
   if((!is.null(max_pos) | !is.null(group_pos) | !is.null(max_pos_long) | !is.null(max_pos_short)) & !is.element(0, weight_seq)) weight_seq <- c(0, weight_seq)
@@ -911,6 +939,82 @@ leverage_fail <- function(weights, leverage){
   
   # sum of absolute value of weight violates leverage constraint
   return(sum(abs(weights)) > leverage)
+}
+
+#' Check if factor exposure constraints are violated
+#'
+#' @param weights vector of weights to test
+#' @param B factor loading matrix (n_assets x n_factors), or NULL
+#' @param lower vector of lower bounds on factor exposures
+#' @param upper vector of upper bounds on factor exposures
+#' @return TRUE if any factor exposure bound is violated, FALSE otherwise
+#' @keywords internal
+factor_exposure_fail <- function(weights, B, lower, upper){
+  if(is.null(B)) return(FALSE)
+  tolerance <- .Machine$double.eps^0.5
+  exposures <- as.numeric(crossprod(B, weights))  # B'w, length K
+  return(any(exposures < lower - tolerance) || any(exposures > upper + tolerance))
+}
+
+#' Project weights onto factor-exposure-feasible set via QP
+#'
+#' Given a candidate weight vector, find the nearest (in L2 norm) weight vector
+#' that satisfies box, leverage (sum), and factor exposure constraints.
+#' Uses \code{quadprog::solve.QP} which is already a dependency.
+#'
+#' @param w_cand numeric vector of candidate weights (length N)
+#' @param min_sum minimum sum of weights (leverage lower bound)
+#' @param max_sum maximum sum of weights (leverage upper bound)
+#' @param min_box numeric vector of lower box bounds (length N)
+#' @param max_box numeric vector of upper box bounds (length N)
+#' @param B factor loading matrix (N x K)
+#' @param lower numeric vector of lower factor exposure bounds (length K)
+#' @param upper numeric vector of upper factor exposure bounds (length K)
+#' @return numeric vector of projected weights, or original \code{w_cand} if QP fails
+#' @keywords internal
+.project_to_fe_feasible <- function(w_cand, min_sum, max_sum, min_box, max_box,
+                                    B, lower, upper){
+  N <- length(w_cand)
+  K <- ncol(B)
+  
+  # QP: minimize (1/2) w'Dw - d'w  where D=I, d=w_cand
+  # => minimize ||w - w_cand||^2
+  Dmat <- diag(N)
+  dvec <- w_cand
+  
+  # Build constraint matrix and RHS
+  # quadprog convention: A'w >= b  (first meq are equalities)
+  # We encode all as inequalities (meq=0)
+  
+  # Constraint rows (each column of Amat is one constraint):
+  # 1. sum(w) >= min_sum            => ones(N), b = min_sum
+  # 2. -sum(w) >= -max_sum          => -ones(N), b = -max_sum
+  # 3. w_i >= min_box_i  (N rows)   => I, b = min_box
+  # 4. -w_i >= -max_box_i (N rows)  => -I, b = -max_box
+  # 5. B'w >= lower  (K rows)       => B, b = lower
+  # 6. -B'w >= -upper (K rows)      => -B, b = -upper
+  
+  ones <- rep(1, N)
+  Amat <- cbind(ones, -ones,           # leverage (2 cols)
+                diag(N), -diag(N),     # box (2N cols)
+                B, -B)                 # factor exposure (2K cols)
+  bvec <- c(min_sum, -max_sum,         # leverage
+            min_box, -max_box,         # box
+            lower, -upper)             # factor exposure
+  
+  result <- try(quadprog::solve.QP(Dmat = Dmat, dvec = dvec,
+                                   Amat = Amat, bvec = bvec,
+                                   meq = 0),
+                silent = TRUE)
+  
+  if(inherits(result, "try-error")){
+    # QP infeasible — return original weights, penalty will handle it
+    return(w_cand)
+  }
+  
+  projected <- result$solution
+  names(projected) <- names(w_cand)
+  return(projected)
 }
 
 rp_increase <- function(weights, min_sum, max_box, weight_seq){

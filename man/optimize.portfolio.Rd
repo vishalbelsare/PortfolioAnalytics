@@ -23,7 +23,7 @@ optimize.portfolio(
   constraints = NULL,
   objectives = NULL,
   optimize_method = c("DEoptim", "random", "ROI", "pso", "GenSA", "Rglpk", "osqp", "mco",
-    "CVXR", ...),
+    "CVXR", "cvxr", ...),
   search_size = 20000,
   trace = FALSE,
   ...,
@@ -58,7 +58,7 @@ A solver of ROI or CVXR can also be specified and will be solved via ROI or CVXR
 }
 \value{
 a list containing the following elements
-\itemize{
+\describe{
   \item{\code{weights}:}{ The optimal set weights.}
   \item{\code{objective_measures}:}{ A list containing the value of each objective corresponding to the optimal weights.}
   \item{\code{opt_values}:}{ A list containing the value of each objective corresponding to the optimal weights.}
@@ -70,16 +70,16 @@ a list containing the following elements
   \item{\code{elapsed_time:}}{ The amount of time that elapses while the optimization is run.}
   \item{\code{end_t:}}{ The date and time the optimization completed.}
 }
-When Trace=TRUE is specified, the following elements will be returned in 
-addition to the elements above. The output depends on the optimization 
+When Trace=TRUE is specified, the following elements will be returned in
+addition to the elements above. The output depends on the optimization
 method and is specific to each solver. Refer to the documentation of the
 desired solver for more information.
 
 \code{optimize_method="random"}
-\itemize{
+\describe{
   \item{\code{random_portfolios}:}{ A matrix of the random portfolios.}
   \item{\code{random_portfolio_objective_results}:}{ A list of the following elements for each random portfolio.}
-  \itemize{
+  \describe{
     \item{\code{out}:}{ The output value of the solver corresponding to the random portfolio weights.}
     \item{\code{weights}:}{ The weights of the random portfolio.}
     \item{\code{objective_measures}:}{ A list of each objective measure corresponding to the random portfolio weights.}
@@ -87,136 +87,143 @@ desired solver for more information.
 }
 
 \code{optimize_method="DEoptim"}
-\itemize{
+\describe{
   \item{\code{DEoutput:}}{ A list (of length 2) containing the following elements:}
   \itemize{
-    \item{\code{optim}}
-    \item{\code{member}}
+    \item \code{optim}
+    \item \code{member}
   }
   \item{\code{DEoptim_objective_results}:}{ A list containing the following elements for each intermediate population.}
   \itemize{
-    \item{\code{out}:}{ The output of the solver.}
-    \item{\code{weights}:}{ Population weights.}
-    \item{\code{init_weights}:}{ Initial population weights.}
-    \item{\code{objective_measures}:}{ A list of each objective measure corresponding to the weights}
+    \item \code{out}: The output of the solver.
+    \item \code{weights}: Population weights.
+    \item \code{init_weights}: Initial population weights.
+    \item \code{objective_measures}: A list of each objective measure corresponding to the weights
   }
 }
 
 \code{optimize_method="pso"}
 \itemize{
-  \item{\code{PSOoutput}:}{ A list containing the following elements:}
+  \item \code{PSOoutput}: A list containing the following elements:
   \itemize{
-    \item{par}
-    \item{value}
-    \item{counts}
-    \item{convergence}
-    \item{message}
-    \item{stats}
+    \item par
+    \item value
+    \item counts
+    \item convergence
+    \item message
+    \item stats
   }
 }
 
 \code{optimize_method="GenSA"}
 \itemize{
-  \item{\code{GenSAoutput:}}{ A list containing the following elements:}
+  \item \code{GenSAoutput}: A list containing the following elements:
   \itemize{
-    \item{value}
-    \item{par}
-    \item{trace.mat}
-    \item{counts}
+    \item value
+    \item par
+    \item trace.mat
+    \item counts
   }
 }
 }
 \description{
-This function aims to provide a wrapper for constrained optimization of 
+This function aims to provide a wrapper for constrained optimization of
 portfolios that specify constraints and objectives.
 }
 \details{
 This function currently supports DEoptim, random portfolios, pso, GenSA, ROI, osqp, Rglpk, mco, and CVXR solvers as back ends.
 Additional back end contributions for Rmetrics, ghyp, etc. would be welcome.
 
-When using random portfolios, search_size is precisely that, how many 
-portfolios to test.  You need to make sure to set your feasible weights 
-in generatesequence to make sure you have search_size unique 
-portfolios to test, typically by manipulating the 'by' parameter 
-to select something smaller than .01 
+When using random portfolios, search_size is precisely that, how many
+portfolios to test.  You need to make sure to set your feasible weights
+in generatesequence to make sure you have search_size unique
+portfolios to test, typically by manipulating the 'by' parameter
+to select something smaller than .01
 (I often use .002, as .001 seems like overkill)
 
-When using DE, search_size is decomposed into two other parameters 
+When using DE, search_size is decomposed into two other parameters
 which it interacts with, NP and itermax.
 
-NP, the number of members in each population, is set to cap at 2000 in 
+NP, the number of members in each population, is set to cap at 2000 in
 DEoptim, and by default is the number of parameters (assets/weights) * 10.
 
 itermax, if not passed in dots, defaults to the number of parameters (assets/weights) * 50.
 
-When using GenSA and want to set \code{verbose=TRUE}, instead use \code{trace}. 
+When using GenSA and want to set \code{verbose=TRUE}, instead use \code{trace}.
 
-If \code{optimize_method="ROI"} is specified, a default solver will be 
+If \code{optimize_method="ROI"} is specified, a default solver will be
 selected based on the optimization problem. The \code{glpk} solver is the
-default solver for LP and MILP optimization problems. The \code{quadprog} 
+default solver for LP and MILP optimization problems. The \code{quadprog}
 solver is the default solver for QP optimization problems. For example,
 \code{optimize_method = "quadprog"} can be specified and the optimization
 problem will be solved via ROI using the quadprog solver.
 
 The extension to ROI solves a limited type of convex optimization problems:
 \itemize{
-\item{Maxmimize portfolio return subject leverage, box, group, position limit, target mean return, and/or factor exposure constraints on weights.}
-\item{Minimize portfolio variance subject to leverage, box, group, turnover, and/or factor exposure constraints (otherwise known as global minimum variance portfolio).}
-\item{Minimize portfolio variance subject to leverage, box, group, and/or factor exposure constraints and a desired portfolio return.}
-\item{Maximize quadratic utility subject to leverage, box, group, target mean return, turnover, and/or factor exposure constraints and risk aversion parameter.
-(The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object).}
-\item{Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) can be done by specifying \code{maxSR=TRUE} in \code{optimize.portfolio}. 
-If both mean and StdDev are specified as objective names, the default action is to maximize quadratic utility, therefore \code{maxSR=TRUE} must be specified to maximize Sharpe Ratio.}
-\item{Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, position limit, target mean return, and/or factor exposure constraints and target portfolio return.}
-\item{Maximize portfolio mean return per unit ES/ETL/CVaR (i.e. the STARR Ratio) can be done by specifying \code{maxSTARR=TRUE} in \code{optimize.portfolio}. 
-If both mean and ES/ETL/CVaR are specified as objective names, the default action is to maximize mean return per unit ES/ETL/CVaR.}
+\item Maxmimize portfolio return subject leverage, box, group, position limit, target mean return, and/or factor exposure constraints on weights.
+\item Minimize portfolio variance subject to leverage, box, group, turnover, and/or factor exposure constraints (otherwise known as global minimum variance portfolio).
+\item Minimize portfolio variance subject to leverage, box, group, and/or factor exposure constraints and a desired portfolio return.
+\item Maximize quadratic utility subject to leverage, box, group, target mean return, turnover, and/or factor exposure constraints and risk aversion parameter.
+(The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object).
+\item Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) can be done by specifying \code{maxSR=TRUE} in \code{optimize.portfolio}.
+If both mean and StdDev are specified as objective names, the default action is to maximize quadratic utility, therefore \code{maxSR=TRUE} must be specified to maximize Sharpe Ratio.
+\item Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, position limit, target mean return, and/or factor exposure constraints and target portfolio return.
+\item Maximize portfolio mean return per unit ES/ETL/CVaR (i.e. the STARR Ratio) can be done by specifying \code{maxSTARR=TRUE} in \code{optimize.portfolio}.
+If both mean and ES/ETL/CVaR are specified as objective names, the default action is to maximize mean return per unit ES/ETL/CVaR.
 }
 These problems also support a weight_concentration objective where concentration
 of weights as measured by HHI is added as a penalty term to the quadratic objective.
 
-Because these convex optimization problem are standardized, there is no need for a penalty term. 
+Because these convex optimization problem are standardized, there is no need for a penalty term.
 The \code{multiplier} argument in \code{\link{add.objective}} passed into the complete constraint object are ignored by the ROI solver.
 
 If \code{optimize_method="CVXR"} is specified, a default solver will be selected based on the optimization problem.
-The default solver for Linear Problem and Quadratic Programming will be \code{OSQP}, 
-and the default solver for Second-Order Cone Programming will be \code{SCS}.
+The default solver for Quadratic Programming will be \code{OSQP},
+and the default solver for Linear Problem and Second-Order Cone Programming will be \code{CLARABEL}.
 Specified CVXR solver can be given by using \code{optimize_method=c("CVXR", "CVXRsolver")}.
-CVXR supports some commercial solvers, including CBC, CPLEX, GUROBI and MOSEK, and some open source solvers, including GLPK, GLPK_MI, OSQP, SCS and ECOS.
+CVXR supports some commercial solvers, including FICO Xpress, CPLEX, GUROBI and MOSEK, 
+and some open source solvers, including CLARABEL, GLPK/GLPK_MI, OSQP, SCS and ECOS/ECOS_BB, HiGHS, CVXOPT, PIQP, SCIP.
 For example, \code{optimize_method = c("CVXR", "ECOS")} can be specified and the optimization problem will be solved via CVXR using the ECOS solver.
 
 The extension to CVXR solves a limited type of convex optimization problems:
 \itemize{
-\item{Maxmimize portfolio mean return subject leverage, box, group, and/or target mean return constraints}
-\item{Minimize portfolio variance subject to leverage, box, group, and/or target mean return constraints (otherwise known as global minimum variance portfolio).}
-\item{Maximize quadratic utility subject to leverage, box, group, and/or target mean return constraints and risk aversion parameter.
-(The default risk aversion is 1, and specified risk aversion could be given by \code{risk_aversion = 1}. 
-The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)}
-\item{Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
+\item Maxmimize portfolio mean return subject leverage, box, group, and/or target mean return constraints
+\item Minimize portfolio variance subject to leverage, box, group, and/or target mean return constraints (otherwise known as global minimum variance portfolio).
+\item Maximize quadratic utility subject to leverage, box, group, and/or target mean return constraints and risk aversion parameter.
+(The default risk aversion is 1, and specified risk aversion could be given by \code{risk_aversion = 1}.
+The risk aversion parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+\item Minimize portfolio ES/ETL/CVaR optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
 (The default tail probability is 0.05, and specified tail probability could be given by \code{arguments = list(p=0.95)}.
-The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)}
-\item{Minimize portfolio EQS optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
+The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+\item Minimize portfolio CSM optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
 (The default tail probability is 0.05, and specified tail probability could be given by \code{arguments = list(p=0.95)}.
-The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)}
-\item{Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) subject to leverage, box, group, and/or target mean return constraints.
+The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+\item Minimize portfolio EQS optimization subject to leverage, box, group, and/or target mean return constraints and tail probability parameter.
+(The default tail probability is 0.05, and specified tail probability could be given by \code{arguments = list(p=0.95)}.
+The tail probability parameter is passed into \code{optimize.portfolio} as an added argument to the \code{portfolio} object.)
+\item Maximize portfolio mean return per unit standard deviation (i.e. the Sharpe Ratio) subject to leverage, box, group, and/or target mean return constraints.
 It should be specified by \code{maxSR=TRUE} in \code{optimize.portfolio} with both mean and var/StdDev objectives.
-Otherwise, the default action is to maximize quadratic utility.}
-\item{Maximize portfolio mean return per unit ES (i.e. the ES ratio/STARR) subject to leverage, box, group, and/or target mean return constraints.
+Otherwise, the default action is to maximize quadratic utility.
+\item Maximize portfolio mean return per unit ES (i.e. the ES ratio/STARR) subject to leverage, box, group, and/or target mean return constraints.
 It could be specified by \code{maxSTARR=TRUE} or \code{ESratio=TRUE} in \code{optimize.portfolio} with both mean and ES objectives.
-The default action is to maximize ES ratio. If \code{maxSTARR=FALSE} or \code{ESratio=FALSE} is given, the action will be minimizing ES.}
-\item{Maximize portfolio mean return per unit EQS (i.e. the EQS ratio) subject to leverage, box, group, and/or target mean return constraints.
+The default action is to maximize ES ratio. If \code{maxSTARR=FALSE} or \code{ESratio=FALSE} is given, the action will be minimizing ES.
+\item Maximize portfolio mean return per unit CSM (i.e. the CSM ratio) subject to leverage, box, group, and/or target mean return constraints.
+It could be specified by \code{CSMratio=TRUE} in \code{optimize.portfolio} with both mean and CSM objectives.
+The default action is to maximize CSM ratio. If \code{CSMratio=FALSE} is given, the action will be minimizing CSM.
+\item Maximize portfolio mean return per unit EQS (i.e. the EQS ratio) subject to leverage, box, group, and/or target mean return constraints.
 It could be specified by \code{EQSratio=TRUE} in \code{optimize.portfolio} with both mean and EQS objectives.
-The default action is to maximize EQS ratio. If \code{EQSratio=FALSE} is given, the action will be minimizing EQS.}
+The default action is to maximize EQS ratio. If \code{EQSratio=FALSE} is given, the action will be minimizing EQS.
 }
 
-Because these convex optimization problem are standardized, there is no need for a penalty term. 
+Because these convex optimization problem are standardized, there is no need for a penalty term.
 The \code{multiplier} argument in \code{\link{add.objective}} passed into the complete constraint object are ignored by the CVXR solver.
 }
 \note{
 An object of class \code{v1_constraint} can be passed in for the \code{constraints} argument.
-The \code{v1_constraint} object was used in the previous 'v1' specification to specify the 
-constraints and objectives for the optimization problem, see \code{\link{constraint}}. 
-We will attempt to detect if the object passed into the constraints argument 
-is a \code{v1_constraint} object and update to the 'v2' specification by adding the 
+The \code{v1_constraint} object was used in the previous 'v1' specification to specify the
+constraints and objectives for the optimization problem, see \code{\link{constraint}}.
+We will attempt to detect if the object passed into the constraints argument
+is a \code{v1_constraint} object and update to the 'v2' specification by adding the
 constraints and objectives to the \code{portfolio} object.
 }
 \seealso{

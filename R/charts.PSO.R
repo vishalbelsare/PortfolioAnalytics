@@ -1,5 +1,6 @@
 
-chart.Weights.pso <- function(object, ..., neighbors = NULL, main="Weights", las = 3, xlab=NULL, cex.lab = 1, element.color = "darkgray", cex.axis=0.8, colorset=NULL, legend.loc="topright", cex.legend=0.8, plot.type="line"){
+#' @rdname chart.Weights
+chart.Weight.pso <- function(object, ..., neighbors = NULL, main="Weights", las = 3, xlab=NULL, cex.lab = 1, element.color = "darkgray", cex.axis=0.8, colorset=NULL, legend.loc="topright", cex.legend=0.8, plot.type="line"){
   
   if(!inherits(object, "optimize.portfolio.pso")) stop("object must be of class 'optimize.portfolio.pso'")
   
@@ -75,10 +76,10 @@ chart.Weights.pso <- function(object, ..., neighbors = NULL, main="Weights", las
 
 #' @rdname chart.Weights
 #' @method chart.Weights optimize.portfolio.pso
-#' @S3method chart.Weights optimize.portfolio.pso
 #' @export
-chart.Weights.optimize.portfolio.pso <- chart.Weights.pso
+chart.Weights.optimize.portfolio.pso <- chart.Weight.pso
 
+#' @rdname chart.RiskReward
 chart.Scatter.pso <- function(object, ..., neighbors=NULL, return.col="mean", risk.col="ES", chart.assets=FALSE, element.color = "darkgray", cex.axis=0.8, xlim=NULL, ylim=NULL){
   if(!inherits(object, "optimize.portfolio.pso")) stop("object must be of class 'optimize.portfolio.pso'")
   
@@ -114,12 +115,12 @@ chart.Scatter.pso <- function(object, ..., neighbors=NULL, return.col="mean", ri
     wts_index <- grep("w.", columnnames)
     wts <- xtract[, wts_index]
     if(is.na(return.column)){
-      tmpret <- applyFUN(R=R, weights=wts, FUN=return.col)
+      tmpret <- applyFUN(R=R, weights=wts, FUN=return.col, arguments=list())
       xtract <- cbind(tmpret, xtract)
       colnames(xtract)[which(colnames(xtract) == "tmpret")] <- return.col
     }
     if(is.na(risk.column)){
-      tmprisk <- applyFUN(R=R, weights=wts, FUN=risk.col)
+      tmprisk <- applyFUN(R=R, weights=wts, FUN=risk.col, arguments=list())
       xtract <- cbind(tmprisk, xtract)
       colnames(xtract)[which(colnames(xtract) == "tmprisk")] <- risk.col
     }
@@ -147,8 +148,8 @@ chart.Scatter.pso <- function(object, ..., neighbors=NULL, return.col="mean", ri
       arguments <- tmp.args
     }
     # Include risk reward scatter of asset returns
-    asset_ret <- scatterFUN(R=R, FUN=return.col, arguments)
-    asset_risk <- scatterFUN(R=R, FUN=risk.col, arguments)
+    asset_ret <- scatterFUN(R=R, FUN=return.col, arguments=NULL)
+    asset_risk <- scatterFUN(R=R, FUN=risk.col, arguments=NULL)
     xlim <- range(c(xtract[,risk.column], asset_risk))
     ylim <- range(c(xtract[,return.column], asset_ret))
   } else {
@@ -184,8 +185,8 @@ chart.Scatter.pso <- function(object, ..., neighbors=NULL, return.col="mean", ri
     risk.col <- gsub("\\..*", "", risk.col)
     # warning(return.col,' or ', risk.col, ' do  not match extractStats output of $objective_measures slot')
     opt_weights <- object$weights
-    ret <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=return.col))
-    risk <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=risk.col))
+    ret <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=return.col, arguments=list()))
+    risk <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=risk.col, arguments=list()))
     points(risk, ret, col="blue", pch=16) #optimal
     text(x=risk, y=ret, labels="Optimal",col="blue", pos=4, cex=0.8)
   } else {
@@ -206,7 +207,6 @@ chart.Scatter.pso <- function(object, ..., neighbors=NULL, return.col="mean", ri
 
 #' @rdname chart.RiskReward
 #' @method chart.RiskReward optimize.portfolio.pso
-#' @S3method chart.RiskReward optimize.portfolio.pso
 #' @export
 chart.RiskReward.optimize.portfolio.pso <- chart.Scatter.pso
 
@@ -218,14 +218,13 @@ charts.pso <- function(pso, return.col="mean", risk.col="ES", chart.assets=FALSE
   par(mar=c(4,4,4,2))
   chart.Scatter.pso(object=pso, return.col=return.col, risk.col=risk.col, chart.assets=chart.assets, element.color=element.color, cex.axis=cex.axis, main=main, xlim=xlim, ylim=ylim, ...=...)
   par(mar=c(2,4,0,2))
-  chart.Weights.pso(object=pso, neighbors=neighbors, las=3, xlab=NULL, cex.lab=1, element.color=element.color, cex.axis=cex.axis, ...=..., main="")
+  chart.Weight.pso(object=pso, neighbors=neighbors, las=3, xlab=NULL, cex.lab=1, element.color=element.color, cex.axis=cex.axis, ...=..., main="")
   par(op)
 }
 
 
 #' @rdname plot
 #' @method plot optimize.portfolio.pso
-#' @S3method plot optimize.portfolio.pso
 #' @export
 plot.optimize.portfolio.pso <- function(x, ..., return.col="mean", risk.col="ES", chart.assets=FALSE, cex.axis=0.8, element.color="darkgray", neighbors=NULL, main="PSO.Portfolios", xlim=NULL, ylim=NULL){
   charts.pso(pso=x, return.col=return.col, risk.col=risk.col, chart.assets=FALSE, cex.axis=cex.axis, element.color=element.color, neighbors=neighbors, main=main, xlim=xlim, ylim=ylim, ...=...)

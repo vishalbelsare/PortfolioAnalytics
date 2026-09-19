@@ -1,6 +1,12 @@
 sandbox
 .metadata
 .svn
+.github
 ^\.Rproj\.user$
 ^.*\.Rproj$
 codeblock.txt
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.codecov\.yml$
+^covr$
+^plan\.md$

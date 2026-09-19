@@ -105,14 +105,14 @@ constrained_objective_v1 <- function(w, R, constraints, ..., trace=FALSE, normal
     if(is.null(constraints$objectives)) {
       warning("no objectives specified in constraints")
     } else{
-      if(isTRUE(trace) | isTRUE(storage)) tmp_return<-list()
+      if(isTRUE(trace) | isTRUE(storage) | isTRUE(verbose)) tmp_return<-list()
       for (objective in constraints$objectives){
         #check for clean bits to pass in
         if(objective$enabled){
           tmp_measure = NULL
           multiplier  = objective$multiplier
           #if(is.null(objective$arguments) | !is.list(objective$arguments)) objective$arguments<-list()
-          switch(objective$name,
+        switch(objective$name,
               mean =,
               median = {
                   fun = match.fun(objective$name)  
@@ -568,7 +568,8 @@ constrained_objective <- constrained_objective_v2 <- function(w, R, portfolio, .
       if(objective$enabled){
         tmp_measure <- NULL
         multiplier <- objective$multiplier
-        #if(is.null(objective$arguments) | !is.list(objective$arguments)) objective$arguments<-list()
+         #if(is.null(objective$arguments) | !is.list(objective$arguments)) objective$arguments<-list()
+        fun <- NULL
         switch(objective$name,
                mean =,
                median = {
@@ -602,7 +603,7 @@ constrained_objective <- constrained_objective_v2 <- function(w, R, portfolio, .
                  if(!inherits(objective,"risk_budget_objective") & is.null(objective$arguments$portfolio_method) & is.null(nargs$portfolio_method)) tmp_args$portfolio_method='single'
                  if(is.null(objective$arguments$invert)) tmp_args$invert = FALSE
                },
-               EQS = {}, ## xinran
+               CSM = {}, ## xinran
                turnover = {
                  fun = match.fun(turnover) # turnover function included in objectiveFUN.R
                },
@@ -628,7 +629,11 @@ constrained_objective <- constrained_objective_v2 <- function(w, R, portfolio, .
         }
         
         # tmp_measure <- try(do.call(fun, .formals, envir=env), silent=TRUE)
-        tmp_measure <- try(do.call(fun, .formals), silent=TRUE)
+        if (is.function(fun)) {
+          tmp_measure <- try(do.call(fun, .formals), silent=TRUE)
+        } else {
+          next  # no function defined for this objective (e.g. CSM), skip it
+        }
         
         if(isTRUE(trace) | isTRUE(storage)) {
           # Subsitute 'StdDev' if the objective name is 'var'

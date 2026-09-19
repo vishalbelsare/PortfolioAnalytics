@@ -16,9 +16,13 @@
 #' @param control list of solver control parameters
 #' @author Ross Bennett
 gmv_opt <- function(R, constraints, moments, lambda, target, lambda_hhi, conc_groups, solver="quadprog", control=NULL){
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI", quietly=TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -72,11 +76,11 @@ gmv_opt <- function(R, constraints, moments, lambda, target, lambda_hhi, conc_gr
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    cLO <- if(is.null(constraints$cLO)) rep(-Inf, n.groups) else constraints$cLO
+    cUP <- if(is.null(constraints$cUP)) rep(Inf, n.groups) else constraints$cUP
     Amat <- rbind(Amat, Amat.group, -Amat.group)
     dir.vec <- c(dir.vec, rep(">=", (n.groups + n.groups)))
-    rhs.vec <- c(rhs.vec, constraints$cLO, -constraints$cUP)
+    rhs.vec <- c(rhs.vec, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir.vec, and rhs.vec
@@ -178,9 +182,13 @@ gmv_opt <- function(R, constraints, moments, lambda, target, lambda_hhi, conc_gr
 #' @param control list of solver control parameters
 #' @author Ross Bennett
 maxret_opt <- function(R, moments, constraints, target, solver="glpk", control=NULL){
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI",quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -218,11 +226,11 @@ maxret_opt <- function(R, moments, constraints, target, solver="glpk", control=N
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    cLO <- if(is.null(constraints$cLO)) rep(-Inf, n.groups) else constraints$cLO
+    cUP <- if(is.null(constraints$cUP)) rep(Inf, n.groups) else constraints$cUP
     Amat <- rbind(Amat, Amat.group, -Amat.group)
     dir.vec <- c(dir.vec, rep(">=", (n.groups + n.groups)))
-    rhs.vec <- c(rhs.vec, constraints$cLO, -constraints$cUP)
+    rhs.vec <- c(rhs.vec, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir.vec, and rhs.vec
@@ -286,9 +294,13 @@ maxret_opt <- function(R, moments, constraints, target, solver="glpk", control=N
 #' @param control list of solver control parameters
 #' @author Ross Bennett
 maxret_milp_opt <- function(R, constraints, moments, target, solver="glpk", control=NULL){
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI",quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -338,20 +350,15 @@ maxret_milp_opt <- function(R, constraints, moments, target, solver="glpk", cont
   if(try(!is.null(constraints$groups), silent=TRUE)){
     n.groups <- length(constraints$groups)
     Amat.group <- matrix(0, nrow=n.groups, ncol=N)
-    k <- 1
-    l <- 0
     for(i in 1:n.groups){
-      j <- constraints$groups[i] 
-      Amat.group[i, k:(l+j)] <- 1
-      k <- l + j + 1
-      l <- k - 1
+      Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    cLO <- if(is.null(constraints$cLO)) rep(-Inf, n.groups) else constraints$cLO
+    cUP <- if(is.null(constraints$cUP)) rep(Inf, n.groups) else constraints$cUP
     zeros <- matrix(data=0, nrow=nrow(Amat.group), ncol=ncol(Amat.group))
     Amat <- rbind(Amat, cbind(Amat.group, zeros), cbind(-Amat.group, zeros))
     dir <- c(dir, rep(">=", (n.groups + n.groups)))
-    rhs <- c(rhs, constraints$cLO, -constraints$cUP)
+    rhs <- c(rhs, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir, and rhs
@@ -412,9 +419,13 @@ maxret_milp_opt <- function(R, constraints, moments, target, solver="glpk", cont
 #' @param control list of solver control parameters
 #' @author Ross Bennett
 etl_opt <- function(R, constraints, moments, target, alpha, solver="glpk", control=NULL){
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI",quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -447,12 +458,12 @@ etl_opt <- function(R, constraints, moments, target, alpha, solver="glpk", contr
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups) else cLO <- constraints$cLO
+    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups) else cUP <- constraints$cUP
     zeros <- matrix(0, nrow=n.groups, ncol=(T+1))
     Amat <- rbind(Amat, cbind(Amat.group, zeros), cbind(-Amat.group, zeros))
     dir.vec <- c(dir.vec, rep(">=", (n.groups + n.groups)))
-    rhs.vec <- c(rhs.vec, constraints$cLO, -constraints$cUP)
+    rhs.vec <- c(rhs.vec, cLO, -cUP)
   }
   # Add the factor exposures to Amat, dir, and rhs
   if(!is.null(constraints$B)){
@@ -512,9 +523,13 @@ etl_opt <- function(R, constraints, moments, target, alpha, solver="glpk", contr
 #' @param control list of solver control parameters
 #' @author Ross Bennett
 etl_milp_opt <- function(R, constraints, moments, target, alpha, solver="glpk", control=NULL){
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI",quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -588,12 +603,12 @@ etl_milp_opt <- function(R, constraints, moments, target, alpha, solver="glpk", 
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
-    zeros <- matrix(0, nrow=n.groups, ncol=(m + n + 2))
+    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups) else cLO <- constraints$cLO
+    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups) else cUP <- constraints$cUP
+    zeros <- matrix(data=0, nrow=nrow(Amat.group), ncol=(m + n + 2))
     tmpAmat <- rbind(tmpAmat, cbind(Amat.group, zeros), cbind(-Amat.group, zeros))
     dir <- c(dir, rep(">=", (n.groups + n.groups)))
-    rhs <- c(rhs, constraints$cLO, -constraints$cUP)
+    rhs <- c(rhs, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir, and rhs
@@ -673,9 +688,13 @@ etl_milp_opt <- function(R, constraints, moments, target, alpha, solver="glpk", 
 gmv_opt_toc <- function(R, constraints, moments, lambda, target, init_weights, solver="quadprog", control=NULL){
   # function for minimum variance or max quadratic utility problems
   stopifnot("package:corpcor" %in% search() || requireNamespace("corpcor",quietly = TRUE))
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI", quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -753,12 +772,12 @@ gmv_opt_toc <- function(R, constraints, moments, lambda, target, init_weights, s
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    cLO <- if(is.null(constraints$cLO)) rep(-Inf, n.groups) else constraints$cLO
+    cUP <- if(is.null(constraints$cUP)) rep(Inf, n.groups) else constraints$cUP
     Amat <- rbind(Amat, cbind(Amat.group, zeros, zeros))
     Amat <- rbind(Amat, cbind(-Amat.group, zeros, zeros))
     dir <- c(dir, rep(">=", (n.groups + n.groups)))
-    rhs <- c(rhs, constraints$cLO, -constraints$cUP)
+    rhs <- c(rhs, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir, and rhs
@@ -772,9 +791,10 @@ gmv_opt_toc <- function(R, constraints, moments, lambda, target, init_weights, s
   }
   
   # Remove the rows of Amat and elements of rhs.vec where rhs is Inf or -Inf
-  Amat <- Amat[!is.infinite(rhs), ]
-  rhs <- rhs[!is.infinite(rhs)]
-  dir <- dir[!is.infinite(rhs)]
+  keep <- !is.infinite(rhs)
+  Amat <- Amat[keep, ]
+  rhs  <- rhs[keep]
+  dir  <- dir[keep]
   
   ROI_objective <- ROI::Q_objective(Q=corpcor::make.positive.definite(2*lambda*V), 
                                L=rep(-tmp_means, 3))
@@ -814,28 +834,18 @@ gmv_opt_toc <- function(R, constraints, moments, lambda, target, init_weights, s
   return(out)
 }
 
-##### minimize variance or maximize quadratic utility with proportional transactioncosts constraints #####
-#' GMV/QU QP Optimization with Proportional Transaction Cost Constraint
-#' 
-#' This function is called by optimize.portfolio to solve minimum variance or 
-#' maximum quadratic utility problems with proportional transaction cost constraint
-#' 
-#' @param R xts object of asset returns
-#' @param constraints object of constraints in the portfolio object extracted with \code{get_constraints}
-#' @param moments object of moments computed based on objective functions
-#' @param lambda risk_aversion parameter
-#' @param target target return value
-#' @param init_weights initial weights to compute turnover
-#' @param solver solver to use
-#' @param control list of solver control parameters
-#' @author Ross Bennett
+##### minimize variance or maximize quadratic utility with proportional transaction costs #####
 gmv_opt_ptc <- function(R, constraints, moments, lambda, target, init_weights, solver="quadprog", control=NULL){
   # function for minimum variance or max quadratic utility problems
   # modifying ProportionalCostOpt function from MPO package
   stopifnot("package:corpcor" %in% search() || requireNamespace("corpcor", quietly = TRUE))
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI", quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -869,7 +879,7 @@ gmv_opt_ptc <- function(R, constraints, moments, lambda, target, init_weights, s
   }
   Amat <- c(tmp_means, rep(0, 2 * N))
   dir <- "=="
-  rhs <- 1 + target
+  rhs <- target
   meq <- 1
   
   # separate the weights into w, w^+, and w^-
@@ -921,12 +931,12 @@ gmv_opt_ptc <- function(R, constraints, moments, lambda, target, init_weights, s
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    cLO <- if(is.null(constraints$cLO)) rep(-Inf, n.groups) else constraints$cLO
+    cUP <- if(is.null(constraints$cUP)) rep(Inf, n.groups) else constraints$cUP
     Amat <- rbind(Amat, cbind(Amat.group, Amat.group, Amat.group))
     Amat <- rbind(Amat, cbind(-Amat.group, -Amat.group, -Amat.group))
     dir <- c(dir, rep(">=", (n.groups + n.groups)))
-    rhs <- c(rhs, constraints$cLO, -constraints$cUP)
+    rhs <- c(rhs, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir, and rhs
@@ -940,9 +950,10 @@ gmv_opt_ptc <- function(R, constraints, moments, lambda, target, init_weights, s
   d <- c(-tmp_means, rep(0, 2 * N))
   
   # Remove the rows of Amat and elements of rhs where rhs is Inf or -Inf
-  Amat <- Amat[!is.infinite(rhs), ]
-  rhs <- rhs[!is.infinite(rhs)]
-  dir <- dir[!is.infinite(rhs)]
+  keep <- !is.infinite(rhs)
+  Amat <- Amat[keep, ]
+  rhs  <- rhs[keep]
+  dir  <- dir[keep]
   
   ROI_objective <- ROI::Q_objective(Q=corpcor::make.positive.definite(2*lambda*V), L=d)
   
@@ -995,9 +1006,13 @@ gmv_opt_ptc <- function(R, constraints, moments, lambda, target, init_weights, s
 gmv_opt_leverage <- function(R, constraints, moments, lambda, target, solver="quadprog", control=NULL){
   # function for minimum variance or max quadratic utility problems
   stopifnot("package:corpcor" %in% search() || requireNamespace("corpcor",quietly = TRUE))
-  stopifnot("package:ROI" %in% search() || requireNamespace("ROI", quietly = TRUE))
+  if (!"package:ROI" %in% search() && !requireNamespace("ROI", quietly = TRUE))
+    stop("Package 'ROI' is required but not installed. ",
+         "Install it with: install.packages('ROI')", call. = FALSE)
   plugin <- paste0("ROI.plugin.", solver)
-  stopifnot(paste0("package:", plugin) %in% search() || requireNamespace(plugin, quietly=TRUE))
+  if (!paste0("package:", plugin) %in% search() && !requireNamespace(plugin, quietly = TRUE))
+    stop("ROI solver plugin '", plugin, "' is not installed. ",
+         "Install it with: install.packages('", plugin, "')", call. = FALSE)
   
   # Check for cleaned returns in moments
   if(!is.null(moments$cleanR)) R <- moments$cleanR
@@ -1073,12 +1088,12 @@ gmv_opt_leverage <- function(R, constraints, moments, lambda, target, solver="qu
     for(i in 1:n.groups){
       Amat.group[i, constraints$groups[[i]]] <- 1
     }
-    if(is.null(constraints$cLO)) cLO <- rep(-Inf, n.groups)
-    if(is.null(constraints$cUP)) cUP <- rep(Inf, n.groups)
+    cLO <- if(is.null(constraints$cLO)) rep(-Inf, n.groups) else constraints$cLO
+    cUP <- if(is.null(constraints$cUP)) rep(Inf, n.groups) else constraints$cUP
     Amat <- rbind(Amat, cbind(Amat.group, zeros, zeros))
     Amat <- rbind(Amat, cbind(-Amat.group, zeros, zeros))
     dir <- c(dir, rep(">=", (n.groups + n.groups)))
-    rhs <- c(rhs, constraints$cLO, -constraints$cUP)
+    rhs <- c(rhs, cLO, -cUP)
   }
   
   # Add the factor exposures to Amat, dir, and rhs
@@ -1092,9 +1107,10 @@ gmv_opt_leverage <- function(R, constraints, moments, lambda, target, solver="qu
   }
   
   # Remove the rows of Amat and elements of rhs.vec where rhs is Inf or -Inf
-  Amat <- Amat[!is.infinite(rhs), ]
-  rhs <- rhs[!is.infinite(rhs)]
-  dir <- dir[!is.infinite(rhs)]
+  keep <- !is.infinite(rhs)
+  Amat <- Amat[keep, ]
+  rhs  <- rhs[keep]
+  dir  <- dir[keep]
   
   ROI_objective <- ROI::Q_objective(Q=corpcor::make.positive.definite(2*lambda*V), 
                                L=rep(-tmp_means, 3))
@@ -1158,6 +1174,14 @@ mean_etl_opt <- function(R, constraints, moments, alpha, solver, control){
   }
   min_mean <- as.numeric(min_ret$out)
   
+  # Guard against degenerate case: all feasible portfolios have the same
+  # expected return. optimize() requires xmin < xmax. Fixes #26.
+  if (min_mean >= max_mean) {
+    warning("mean_etl_opt: min_mean >= max_mean (degenerate return distribution). ",
+            "Returning max_mean as the target return.")
+    return(max_mean)
+  }
+
   # use optimize() to find the target return value that maximizes sharpe ratio
   opt <- try(optimize(f=starr_obj_fun, R=R, constraints=constraints, 
                       solver=solver, moments=moments, alpha=alpha,
@@ -1354,6 +1378,15 @@ max_sr_opt <- function(R, constraints, moments, lambda_hhi, conc_groups, solver,
   min_ret <- maxret_opt(R=R, moments=tmp_moments, constraints=constraints, 
                         target=NA, solver="glpk", control=control)
   min_mean <- as.numeric(min_ret$out)
+  
+  # Guard against degenerate case: all feasible portfolios have the same
+  # expected return (e.g. all asset means are equal or nearly so).
+  # optimize() requires xmin < xmax; return the only feasible target. Fixes #26.
+  if (min_mean >= max_mean) {
+    warning("max_sr_opt: min_mean >= max_mean (degenerate return distribution). ",
+            "Returning max_mean as the target return.")
+    return(max_mean)
+  }
   
   # use optimize() to find the target return value that maximizes sharpe ratio
   opt <- try(optimize(f=sharpe_obj_fun, R=R, constraints=constraints, 

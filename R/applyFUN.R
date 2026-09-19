@@ -9,7 +9,7 @@
 #' @param arguments named list of arguments to FUN
 #' @author Ross Bennett
 #' @export
-applyFUN <- function(R, weights, FUN="mean", arguments){
+applyFUN <- function(R, weights, FUN="mean", arguments=NULL){
   nargs <- arguments
   
   moments <- function(R){
@@ -51,8 +51,8 @@ applyFUN <- function(R, weights, FUN="mean", arguments){
            if(is.null(nargs$portfolio_method)) nargs$portfolio_method='single'
            if(is.null(nargs$invert)) nargs$invert = FALSE
          },
-         # EQS = {
-           # fun = match.fun(EQS)
+         # CSM = {
+           # fun = match.fun(CSM)
            # if(is.null(nargs$portfolio_method)) nargs$portfolio_method='single'
            # if(is.null(nargs$invert)) nargs$invert = FALSE
          # },
@@ -140,10 +140,15 @@ scatterFUN <- function(R, FUN, arguments=NULL){
            if(is.null(nargs$portfolio_method)) nargs$portfolio_method='single'
            if(is.null(nargs$invert)) nargs$invert = FALSE
          },
+         # CSM = {
+         #   fun = match.fun(CSM)
+         #   if(is.null(nargs$portfolio_method)) nargs$portfolio_method='single'
+         #   if(is.null(nargs$invert)) nargs$invert = FALSE
+         # },
          # EQS = {
-           # fun = match.fun(EQS)
-           # if(is.null(nargs$portfolio_method)) nargs$portfolio_method='single'
-           # if(is.null(nargs$invert)) nargs$invert = FALSE
+         #   fun = match.fun(EQS)
+         #   if(is.null(nargs$portfolio_method)) nargs$portfolio_method='single'
+         #   if(is.null(nargs$invert)) nargs$invert = FALSE
          # },
 {   # see 'S Programming p. 67 for this matching
   fun <- try(match.fun(FUN))

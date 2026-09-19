@@ -19,11 +19,11 @@
 #' @param R xts object of asset returns
 #' @param ... parameters for covRob.MM
 #' 
-#' @details For parameter details, see covRobMM in the RobStatTM Reference
-#' Manual at \url{https://cran.r-project.org/web/packages/RobStatTM/index.html}
+#' @references For parameter details, see covRobMM in the RobStatTM Reference
+#' Manual at \url{https://CRAN.R-project.org/package=RobStatTM}
 #'
 #' @return a list containing covariance matrix sigma and mean vector mu
-#' @author Yifu Kang
+#' @author Yifu Kang, Xinran Zhao
 #' @export
 #'
 custom.covRob.MM <- function(R, ...){
@@ -48,7 +48,7 @@ custom.covRob.MM <- function(R, ...){
 #' @param ... parameters for covRob.Rocke
 #' 
 #' @details For parameter details, see covRobRocke in the RobStatTM Reference
-#' Manual at \url{https://cran.r-project.org/web/packages/RobStatTM/index.html}
+#' Manual at \url{https://CRAN.R-project.org/package=RobStatTM}
 #'
 #' @return a list containing covariance matrix sigma and mean vector mu
 #' @author Yifu Kang
@@ -81,13 +81,13 @@ custom.covRob.Rocke <- function(R, ...){
 #' @param ... parameters for covRob.Mcd
 #' 
 #' @details For parameter details, see covMcd in the robustbase Reference
-#' Manual at \url{https://cran.r-project.org/web/packages/robustbase/index.html}
+#' Manual at \url{https://CRAN.R-project.org/package=robustbase}
 #' 
 #' @return a list containing covariance matrix sigma and mean vector mu
 #' @export
 custom.covRob.Mcd <- function(R, ...){
   
-  if(hasArg(control)) control = match.call(expand.dots = TRUE)$control else control = MycovRobMcd()
+  if(hasArg(control)) control = list(...)[["control"]] else control = MycovRobMcd()
   if(hasArg(alpha)) alpha = match.call(expand.dots = TRUE)$alpha else alpha = control$alpha
   if(hasArg(nsamp)) nsamp = match.call(expand.dots = TRUE)$nsamp else nsamp = control$nsamp
   if(hasArg(nmini)) nmini = match.call(expand.dots = TRUE)$nmini else nmini = control$nmini

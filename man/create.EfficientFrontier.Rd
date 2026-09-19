@@ -46,7 +46,7 @@ create an efficient frontier
 }
 \details{
 Currently there are 4 'types' supported to create an efficient frontier:
-\itemize{
+\describe{
   \item{"mean-var", "mean-sd", or "mean-StdDev":}{ This is a special case for 
   an efficient frontier that can be created by a QP solver.
   The \code{portfolio} object should have two
@@ -61,10 +61,10 @@ Currently there are 4 'types' supported to create an efficient frontier:
   objectives, they will be added using default parameters.
   The efficient frontier is created via 
   \code{\link{meanetl.efficient.frontier}}.}
-  \item{"mean-EQS":}{ This is a special 
+  \item{"mean-CSM":}{ This is a special 
   case for an efficient frontier that can be created by CVXR solvers.
   The \code{portfolio} object should have two objectives: 1) mean
-  and 2) EQS. If the portfolio object does not contain these 
+  and 2) CSM. If the portfolio object does not contain these 
   objectives, they will be added using default parameters.
   The efficient frontier is created via 
   \code{\link{meanrisk.efficient.frontier}}.}

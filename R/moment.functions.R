@@ -43,8 +43,8 @@ CCCgarch.MM = function(R, momentargs = NULL , ... )
   }
   U = R/S; #filtered out time-varying volatility
   if (!hasArg(clean)){ 
-    clean = match.call(expand.dots = TRUE)$clean
-  }else{ clean = NULL }
+    clean = NULL
+  }else{ clean = list(...)[["clean"]] }
   if(!is.null(clean)){ 
     cleanU <- try(Return.clean(U, method = clean))
     if (!inherits(cleanU, "try-error")) { U = cleanU }
@@ -144,7 +144,7 @@ set.portfolio.moments_v1 <- function(R, constraints, momentargs=NULL,...){
 #' Set portfolio moments for use by lower level optimization functions. Currently
 #' three methods for setting the moments are available
 #' 
-#' \itemize{
+#' \describe{
 #'   \item{sample: }{sample estimates are used for the moments}
 #'   \item{boudt: }{estimate the second, third, and fourth moments using a 
 #'   statistical factor model based on the work of Kris Boudt.}
@@ -206,7 +206,7 @@ set.portfolio.moments <- set.portfolio.moments_v2 <- function(R,
              B <- black.litterman(R=tmpR, P=P, Mu=Mu, Sigma=Sigma, Views=Views)
            },
            meucci = {
-             if(hasArg(posterior_p)) posterior_p=match.call(expand.dots=TRUE)$posterior_p else posterior_p=rep(1 / nrow(R), nrow(R))
+             if(hasArg(posterior_p)) posterior_p=list(...)[["posterior_p"]] else posterior_p=rep(1 / nrow(R), nrow(R))
              meucci.model <- meucci.moments(R=tmpR, posterior_p=posterior_p)
            }
     ) # end switch for fitting models based on method
@@ -281,7 +281,7 @@ set.portfolio.moments <- set.portfolio.moments_v2 <- function(R,
              }, # end switch on var, sd, StdDev
              mVaR =,
              VaR = ,
-             EQS = {
+             CSM = {
                switch(method,
                       sample = {
                         if(is.null(momentargs$mu)) momentargs$mu = matrix( as.vector(apply(tmpR, 2, 'mean')), ncol=1);
@@ -416,7 +416,7 @@ portfolio.moments.boudt <- function(R, portfolio, momentargs=NULL, k=1, ...){
              },
              mVaR =,
              VaR = ,
-             EQS = {
+             CSM = {
                if(is.null(momentargs$mu)) momentargs$mu = matrix( as.vector(apply(R,2,'mean')),ncol=1)
                if(is.null(momentargs$sigma)) momentargs$sigma = extractCovariance(fit)
                if(is.null(momentargs$m3)) momentargs$m3 = extractCoskewness(fit)
@@ -502,7 +502,7 @@ portfolio.moments.bl <- function(R, portfolio, momentargs=NULL, P, Mu=NULL, Sigm
              },
              mVaR =,
              VaR = ,
-             EQS = {
+             CSM = {
                if(is.null(momentargs$mu)) momentargs$mu = B$BLMu
                if(is.null(momentargs$sigma)) momentargs$sigma = B$BLSigma
                if(is.null(momentargs$m3)) momentargs$m3 = PerformanceAnalytics::M3.MM(R)

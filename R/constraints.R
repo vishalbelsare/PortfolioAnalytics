@@ -181,7 +181,7 @@ constraint <- constraint_v2 <- function(type, enabled=TRUE, ..., constrclass="v2
 #' This is the main function for adding and/or updating constraints to the \code{\link{portfolio.spec}} object.
 #' 
 #' The following constraint types may be specified:
-#' \itemize{
+#' \describe{
 #' \item{\code{weight_sum}, \code{weight}, \code{leverage}}{ Specify constraint on the sum of the weights, see \code{\link{weight_sum_constraint}} }
 #' \item{\code{full_investment}}{ Special case to set \code{min_sum=1} and \code{max_sum=1} of weight sum constraints }
 #' \item{\code{dollar_neutral}, \code{active}}{ Special case to set \code{min_sum=0} and \code{max_sum=0} of weight sum constraints }
@@ -759,6 +759,8 @@ get_constraints <- function(portfolio){
       }
       if(inherits(constraint, "turnover_constraint")){
         out$turnover_target <- constraint$turnover_target
+        out$concentration_penalty <- constraint$concentration_penalty
+        out$weight_initial <- constraint$weight_initial
       }
       if(inherits(constraint, "diversification_constraint")){
         out$div_target <- constraint$div_target
@@ -822,6 +824,8 @@ get_constraints <- function(portfolio){
 #' 
 #' @param type character type of the constraint
 #' @param turnover_target target turnover value
+#' @param concentration_penalty optional penalty parameter for turnover constraint
+#' @param weight_initial optional initial weights vector to compute turnover from
 #' @param enabled TRUE/FALSE
 #' @param message TRUE/FALSE. The default is message=FALSE. Display messages if TRUE.
 #' @param \dots any other passthru parameters to specify box and/or group constraints
@@ -836,9 +840,12 @@ get_constraints <- function(portfolio){
 #' 
 #' pspec <- add.constraint(portfolio=pspec, type="turnover", turnover_target=0.6)
 #' @export
-turnover_constraint <- function(type="turnover", turnover_target, enabled=TRUE, message=FALSE, ...){
+turnover_constraint <- function(type="turnover", TOC=NULL, turnover_target=NULL, concentration_penalty=0, weight_initial=NULL, enabled=TRUE, message=FALSE, ...){
   Constraint <- constraint_v2(type, enabled=enabled, constrclass="turnover_constraint", ...)
-  Constraint$turnover_target <- turnover_target
+  Constraint$turnover_target <- if (!is.null(turnover_target)) turnover_target else TOC
+  Constraint$weight_initial <- weight_initial
+  Constraint$concentration_penalty <- concentration_penalty
+  if (is.null(Constraint$turnover_target) & concentration_penalty == 0) stop("Please supply either turnover_target, TOC or concentration_penalty")
   return(Constraint)
 }
 
@@ -1085,7 +1092,7 @@ leverage_exposure_constraint <- function(type="leverage_exposure", leverage=NULL
 #' @param ... any other passthru parameters, used to call \code{\link{constraint}}
 #' @author bpeterson
 #' @method update constraint
-#' @S3method update constraint
+
 #' @export
 update.constraint <- function(object, ...){
   constraints <- object
@@ -1223,6 +1230,8 @@ check_constraints <- function(weights, portfolio){
   group_pos <- constraints$group_pos
   div_target <- constraints$div_target
   turnover_target <- constraints$turnover_target
+  concentration_penalty <- constraints$concentration_penalty
+  weight_initial <- constraints$weight_initial
   max_pos <- constraints$max_pos
   max_pos_long <- constraints$max_pos_long
   max_pos_short <- constraints$max_pos_short

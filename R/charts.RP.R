@@ -10,7 +10,8 @@
 #
 ###############################################################################
 
-chart.Weights.RP <- function(object, ..., neighbors = NULL, main="Weights", las = 3, xlab=NULL, cex.lab = 1, element.color = "darkgray", cex.axis=0.8, colorset=NULL, legend.loc="topright", cex.legend=0.8, plot.type="line"){
+#' @rdname chart.Weights
+chart.Weight.RP <- function(object, ..., neighbors = NULL, main="Weights", las = 3, xlab=NULL, cex.lab = 1, element.color = "darkgray", cex.axis=0.8, colorset=NULL, legend.loc="topright", cex.legend=0.8, plot.type="line"){
   # Specific to the output of the random portfolio code with constraints
   if(!inherits(object, "optimize.portfolio.random")){
     stop("object must be of class 'optimize.portfolio.random'")
@@ -90,10 +91,10 @@ chart.Weights.RP <- function(object, ..., neighbors = NULL, main="Weights", las 
 
 #' @rdname chart.Weights
 #' @method chart.Weights optimize.portfolio.random
-#' @S3method chart.Weights optimize.portfolio.random
 #' @export
-chart.Weights.optimize.portfolio.random <- chart.Weights.RP
+chart.Weights.optimize.portfolio.random <- chart.Weight.RP
 
+#' @rdname chart.RiskReward
 chart.Scatter.RP <- function(object, ..., neighbors = NULL, return.col='mean', risk.col='ES', chart.assets=FALSE, element.color = "darkgray", cex.axis=0.8, xlim=NULL, ylim=NULL){
   # more or less specific to the output of the random portfolio code with constraints
   # will work to a point with other functions, such as optimize.porfolio.parallel
@@ -132,12 +133,12 @@ chart.Scatter.RP <- function(object, ..., neighbors = NULL, return.col='mean', r
     wts_index <- grep("w.", columnnames)
     wts <- xtract[, wts_index]
     if(is.na(return.column)){
-      tmpret <- applyFUN(R=R, weights=wts, FUN=return.col)
+      tmpret <- applyFUN(R=R, weights=wts, FUN=return.col, arguments=list())
       xtract <- cbind(tmpret, xtract)
       colnames(xtract)[which(colnames(xtract) == "tmpret")] <- return.col
     }
     if(is.na(risk.column)){
-      tmprisk <- applyFUN(R=R, weights=wts, FUN=risk.col)
+      tmprisk <- applyFUN(R=R, weights=wts, FUN=risk.col, arguments=list())
       xtract <- cbind(tmprisk, xtract)
       colnames(xtract)[which(colnames(xtract) == "tmprisk")] <- risk.col
     }
@@ -167,8 +168,8 @@ chart.Scatter.RP <- function(object, ..., neighbors = NULL, return.col='mean', r
       arguments <- tmp.args
     }
     # Include risk reward scatter of asset returns
-    asset_ret <- scatterFUN(R=R, FUN=return.col, arguments)
-    asset_risk <- scatterFUN(R=R, FUN=risk.col, arguments)
+    asset_ret <- scatterFUN(R=R, FUN=return.col, arguments=NULL)
+    asset_risk <- scatterFUN(R=R, FUN=risk.col, arguments=NULL)
     xlim <- range(c(xtract[,risk.column], asset_risk))
     ylim <- range(c(xtract[,return.column], asset_ret))
   } else {
@@ -244,8 +245,8 @@ chart.Scatter.RP <- function(object, ..., neighbors = NULL, return.col='mean', r
     risk.col <- gsub("\\..*", "", risk.col)
     # warning(return.col,' or ', risk.col, ' do  not match extractStats output of $objective_measures slot')
     opt_weights <- object$weights
-    ret <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=return.col))
-    risk <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=risk.col))
+    ret <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=return.col, arguments=list()))
+    risk <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=risk.col, arguments=list()))
     points(risk, ret, col="blue", pch=16) #optimal
     text(x=risk, y=ret, labels="Optimal",col="blue", pos=4, cex=0.8)
   } else {
@@ -259,7 +260,6 @@ chart.Scatter.RP <- function(object, ..., neighbors = NULL, return.col='mean', r
 
 #' @rdname chart.RiskReward
 #' @method chart.RiskReward optimize.portfolio.random
-#' @S3method chart.RiskReward optimize.portfolio.random
 #' @export
 chart.RiskReward.optimize.portfolio.random <- chart.Scatter.RP
 
@@ -272,14 +272,13 @@ charts.RP <- function(RP, risk.col, return.col, chart.assets=FALSE, neighbors=NU
   par(mar=c(4,4,4,2))
   chart.Scatter.RP(object=RP, risk.col=risk.col, return.col=return.col, chart.assets=chart.assets, neighbors=neighbors, main=main, xlim=NULL, ylim=NULL, ...)
   par(mar=c(2,4,0,2))
-  chart.Weights.RP(object=RP, main="", neighbors=neighbors, ...)
+  chart.Weight.RP(object=RP, main="", neighbors=neighbors, ...)
   par(op)
 }
 
 
 #' @rdname plot
 #' @method plot optimize.portfolio.random
-#' @S3method plot optimize.portfolio.random
 #' @export
 plot.optimize.portfolio.random <- function(x, ..., return.col='mean', risk.col='ES',  chart.assets=FALSE, neighbors=NULL, xlim=NULL, ylim=NULL, main='optimized portfolio plot') {
     charts.RP(RP=x, risk.col=risk.col, return.col=return.col, chart.assets=chart.assets, neighbors=neighbors, main=main, xlim=xlim, ylim=ylim, ...)
@@ -288,7 +287,6 @@ plot.optimize.portfolio.random <- function(x, ..., return.col='mean', risk.col='
 
 #' @rdname plot
 #' @method plot optimize.portfolio
-#' @S3method plot optimize.portfolio
 #' @export
 plot.optimize.portfolio <- function(x, ...,  return.col='mean', risk.col='ES',  chart.assets=FALSE, neighbors=NULL, xlim=NULL, ylim=NULL, main='optimized portfolio plot') {
     charts.RP(RP=x, risk.col=risk.col, return.col=return.col, chart.assets=chart.assets, neighbors=neighbors, main=main, xlim=xlim, ylim=ylim, ...)

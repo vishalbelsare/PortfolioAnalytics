@@ -11,7 +11,8 @@
 ###############################################################################
 
 
-chart.Weights.DE <- function(object, ..., neighbors = NULL, main="Weights", las = 3, xlab=NULL, cex.lab = 1, element.color = "darkgray", cex.axis=0.8, colorset=NULL, legend.loc="topright", cex.legend=0.8, plot.type="line"){
+#' @rdname chart.Weights
+chart.Weight.DE <- function(object, ..., neighbors = NULL, main="Weights", las = 3, xlab=NULL, cex.lab = 1, element.color = "darkgray", cex.axis=0.8, colorset=NULL, legend.loc="topright", cex.legend=0.8, plot.type="line"){
   # Specific to the output of optimize.portfolio with optimize_method="DEoptim"
   if(!inherits(object, "optimize.portfolio.DEoptim")) stop("object must be of class 'optimize.portfolio.DEoptim'")
   
@@ -88,11 +89,11 @@ chart.Weights.DE <- function(object, ..., neighbors = NULL, main="Weights", las 
 
 #' @rdname chart.Weights
 #' @method chart.Weights optimize.portfolio.DEoptim
-#' @S3method chart.Weights optimize.portfolio.DEoptim
 #' @export
-chart.Weights.optimize.portfolio.DEoptim <- chart.Weights.DE
+chart.Weights.optimize.portfolio.DEoptim <- chart.Weight.DE
 
 
+#' @rdname chart.RiskReward
 chart.Scatter.DE <- function(object, ..., neighbors = NULL, return.col='mean', risk.col='ES', chart.assets=FALSE, element.color = "darkgray", cex.axis=0.8, xlim=NULL, ylim=NULL){
   # more or less specific to the output of the DEoptim portfolio code with constraints
   # will work to a point with other functions, such as optimize.porfolio.parallel
@@ -132,12 +133,12 @@ chart.Scatter.DE <- function(object, ..., neighbors = NULL, return.col='mean', r
     wts_index <- grep("w.", columnnames)
     wts <- xtract[, wts_index]
     if(is.na(return.column)){
-      tmpret <- applyFUN(R=R, weights=wts, FUN=return.col)
+      tmpret <- applyFUN(R=R, weights=wts, FUN=return.col, arguments=list())
       xtract <- cbind(tmpret, xtract)
       colnames(xtract)[which(colnames(xtract) == "tmpret")] <- return.col
     }
     if(is.na(risk.column)){
-      tmprisk <- applyFUN(R=R, weights=wts, FUN=risk.col)
+      tmprisk <- applyFUN(R=R, weights=wts, FUN=risk.col, arguments=list())
       xtract <- cbind(tmprisk, xtract)
       colnames(xtract)[which(colnames(xtract) == "tmprisk")] <- risk.col
     }
@@ -167,8 +168,8 @@ chart.Scatter.DE <- function(object, ..., neighbors = NULL, return.col='mean', r
       arguments <- tmp.args
     }
     # Include risk reward scatter of asset returns
-    asset_ret <- scatterFUN(R=R, FUN=return.col, arguments)
-    asset_risk <- scatterFUN(R=R, FUN=risk.col, arguments)
+    asset_ret <- scatterFUN(R=R, FUN=return.col, arguments=NULL)
+    asset_risk <- scatterFUN(R=R, FUN=risk.col, arguments=NULL)
     xlim <- range(c(xtract[,risk.column], asset_risk))
     ylim <- range(c(xtract[,return.column], asset_ret))
   } else {
@@ -292,8 +293,8 @@ chart.Scatter.DE <- function(object, ..., neighbors = NULL, return.col='mean', r
     risk.col <- gsub("\\..*", "", risk.col)
     # warning(return.col,' or ', risk.col, ' do  not match extractStats output of $objective_measures slot')
     opt_weights <- object$weights
-    ret <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=return.col))
-    risk <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=risk.col))
+    ret <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=return.col, arguments=list()))
+    risk <- as.numeric(applyFUN(R=R, weights=opt_weights, FUN=risk.col, arguments=list()))
     points(risk, ret, col="blue", pch=16) #optimal
     text(x=risk, y=ret, labels="Optimal",col="blue", pos=4, cex=0.8)
   } else {
@@ -307,7 +308,6 @@ chart.Scatter.DE <- function(object, ..., neighbors = NULL, return.col='mean', r
 
 #' @rdname chart.RiskReward
 #' @method chart.RiskReward optimize.portfolio.DEoptim
-#' @S3method chart.RiskReward optimize.portfolio.DEoptim
 #' @export
 chart.RiskReward.optimize.portfolio.DEoptim <- chart.Scatter.DE
 
@@ -320,7 +320,7 @@ charts.DE <- function(DE, risk.col, return.col, chart.assets, neighbors=NULL, ma
     par(mar=c(4,4,4,2))
     chart.Scatter.DE(object=DE, risk.col=risk.col, return.col=return.col, chart.assets=chart.assets, neighbors=neighbors, main=main, xlim=xlim, ylim=ylim, ...)
     par(mar=c(2,4,0,2))
-    chart.Weights.DE(object=DE, main="", neighbors=neighbors, ...)
+    chart.Weight.DE(object=DE, main="", neighbors=neighbors, ...)
     par(op)
 }
 
@@ -360,7 +360,6 @@ charts.DE <- function(DE, risk.col, return.col, chart.assets, neighbors=NULL, ma
 #' @param cex.axis the magnification to be used for axis annotation relative to the current setting of \code{cex}.
 #' @rdname plot
 #' @method plot optimize.portfolio.DEoptim
-#' @S3method plot optimize.portfolio.DEoptim
 #' @export
 plot.optimize.portfolio.DEoptim <- function(x, ..., return.col='mean', risk.col='ES',  chart.assets=FALSE, neighbors=NULL, main='optimized portfolio plot', xlim=NULL, ylim=NULL) {
     charts.DE(DE=x, risk.col=risk.col, return.col=return.col, chart.assets=chart.assets, neighbors=neighbors, main=main, xlim=xlim, ylim=ylim, ...)

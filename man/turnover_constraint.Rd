@@ -6,7 +6,10 @@
 \usage{
 turnover_constraint(
   type = "turnover",
-  turnover_target,
+  TOC = NULL,
+  turnover_target = NULL,
+  concentration_penalty = 0,
+  weight_initial = NULL,
   enabled = TRUE,
   message = FALSE,
   ...
@@ -16,6 +19,10 @@ turnover_constraint(
 \item{type}{character type of the constraint}
 
 \item{turnover_target}{target turnover value}
+
+\item{concentration_penalty}{optional penalty parameter for turnover constraint}
+
+\item{weight_initial}{optional initial weights vector to compute turnover from}
 
 \item{enabled}{TRUE/FALSE}
 
